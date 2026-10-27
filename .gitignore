@@ -1,0 +1,21 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.venv/
+build/
+dist/
+
+# Yaskawa manuals are copyrighted; keep them local, don't publish them.
+Manuals/
+
+# graphify output (contains text converted from the manuals)
+graphify-out/
+
+# local PLC data backups (not part of the library)
+plc_backup/
+
+# site-specific notes and screenshots (PLC/PC IP addresses); kept locally only
+docs/WORK_LOG.md
+Img/
