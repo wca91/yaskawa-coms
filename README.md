@@ -44,9 +44,18 @@ Modbus/TCP and UDP work the same way:
 ```python
 from yaskawa_coms import ModbusTcpClient, MemobusClient
 
-ModbusTcpClient("192.168.1.1", 502, unit_id=0)
+ModbusTcpClient("192.168.1.1", 10002, unit_id=0)        # port = that connection's Local Port
 MemobusClient("192.168.1.1", 10002, transport="udp")
 ```
+
+> **The port is your choice, for every protocol.** There is no fixed port
+> for MEMOBUS, Extended MEMOBUS, non-procedure **or Modbus/TCP** (Modbus/TCP
+> does *not* have to be 502). Each connection's port is whatever you enter
+> as **Local Port** ("My Port" in CP-717) in the 218 module's transmission
+> settings, and the client must use that same number. Example: Local Port
+> 10002 + protocol Modbus/TCP -> `ModbusTcpClient(ip, 10002)`. Only rule:
+> don't reuse a port already used by another connection or by the
+> engineering port (10000 by default).
 
 ## Addresses
 
@@ -66,7 +75,10 @@ values.
 
 In MPE720, open the 218IF module's connection settings and add a connection:
 
-* **Local Port**: the port you pass to the client (no fixed default).
+* **Local Port** ("My Port" in CP-717): **any port you choose** (256-65534);
+  pass the same number to the client. This applies to Modbus/TCP too: 502
+  is not required. Use a different port for each connection, and not the
+  engineering port (10000 by default).
 * **Node IP / Node Port**: your PC's IP and port, **or `0.0.0.0` / `0`
   ("unpassive open")** to accept any PC. With unpassive open, a new
   connection drops the old one, so use one client per connection.
@@ -195,7 +207,7 @@ with MemobusSimulator() as sim:
 yaskawa-coms simulate --port 10001
 yaskawa-coms read  127.0.0.1:10001 MW00100 5
 yaskawa-coms write 127.0.0.1:10001 MF21000 8.68
-yaskawa-coms read  192.168.1.1:502 MW00100 --protocol modbus
+yaskawa-coms read  192.168.1.1:10002 MW00100 --protocol modbus   # port = Local Port
 ```
 
 ## Status

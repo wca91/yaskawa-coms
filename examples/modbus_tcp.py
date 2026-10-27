@@ -1,8 +1,9 @@
 """Read and write an MP2000 controller over Modbus/TCP.
 
-The 218IF connection must be set to protocol type MODBUS/TCP.
+The 218IF connection must be set to protocol type MODBUS/TCP. The port is
+that connection's Local Port (any number you chose, not necessarily 502).
 
-Usage:  python modbus_tcp.py 192.168.1.1 502
+Usage:  python modbus_tcp.py 192.168.1.1 10002
         python modbus_tcp.py --sim
 """
 import sys

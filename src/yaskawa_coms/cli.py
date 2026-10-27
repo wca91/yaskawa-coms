@@ -2,7 +2,7 @@
 
     yaskawa-coms read  192.168.1.1:10001 MW00100 10
     yaskawa-coms write 192.168.1.1:10001 MF21000 8.68
-    yaskawa-coms read  192.168.1.1:502 MW00100 --protocol modbus
+    yaskawa-coms read  192.168.1.1:10002 MW00100 --protocol modbus
     yaskawa-coms simulate --port 10001
 """
 from __future__ import annotations

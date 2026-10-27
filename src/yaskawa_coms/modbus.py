@@ -91,8 +91,9 @@ class ModbusTcpClient(RegisterClient):
 
     Args:
         host: controller IP address.
-        port: the port set in the controller's Modbus/TCP connection
-            (502 is the Modbus standard, but use what the 218IF is set to).
+        port: the Local Port of the controller's Modbus/TCP connection, as
+            set in the 218 transmission settings. Required: there is no
+            default because the 218 does not have to use 502.
         unit_id: Modbus unit identifier (0 for MP2000 per the manual).
         transport: ``"tcp"`` (standard). ``"udp"`` sends the same frames
             over UDP for devices that support it.
@@ -100,7 +101,7 @@ class ModbusTcpClient(RegisterClient):
 
     Example::
 
-        with ModbusTcpClient("192.168.1.1", 502) as plc:
+        with ModbusTcpClient("192.168.1.1", 10002) as plc:
             plc.read("MW00100", 4)
             plc.write_coil(1600, True)   # MB00100 bit 0
     """
@@ -113,7 +114,7 @@ class ModbusTcpClient(RegisterClient):
     def __init__(
         self,
         host: str,
-        port: int = 502,
+        port: int,
         *,
         unit_id: int = 0,
         transport: str = "tcp",
