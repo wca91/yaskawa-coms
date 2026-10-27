@@ -19,3 +19,6 @@ plc_backup/
 # site-specific notes and screenshots (PLC/PC IP addresses); kept locally only
 docs/WORK_LOG.md
 Img/
+
+# old client from the previous project; kept locally only
+memobus_client.py

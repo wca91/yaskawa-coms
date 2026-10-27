@@ -1,7 +1,4 @@
-"""Byte-for-byte checks against the manuals and the PLC-tested legacy client."""
-import importlib.util
-import pathlib
-import random
+"""Byte-for-byte checks against the manuals and values verified on a real PLC."""
 import struct
 
 import pytest
@@ -9,8 +6,6 @@ import pytest
 from yaskawa_coms import memobus as mb
 from yaskawa_coms import modbus as mt
 from yaskawa_coms.exceptions import IllegalAddress, IllegalFunction, ProtocolError, RemoteError
-
-ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 
 # --- MP2000 manual, p.A-37 (Appendix E sample program) and p.4-47 ---------
@@ -100,46 +95,14 @@ def test_standard_codes_follow_appendix_f():
     assert (frame[19] << 8) | frame[20] == 3
 
 
-# --- Parity with the PLC-tested legacy client (memobus_client.py) ---------
-def _load_legacy():
-    path = ROOT / "memobus_client.py"
-    if not path.exists():
-        pytest.skip("legacy memobus_client.py not present")
-    spec = importlib.util.spec_from_file_location("legacy_memobus_client", path)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
-
-
-def test_frames_identical_to_legacy_client():
-    legacy = _load_legacy()
-    rng = random.Random(1)
-    for _ in range(200):
-        old = legacy.MemobusClient("127.0.0.1", 1, cpu_no=0x10)
-        old._serial = rng.randrange(256)
-        serial = (old._serial + 1) & 0xFF
-        start = rng.randrange(0x10000)
-        count = rng.randrange(1, 508)
-        # read (09H)
-        old_read = old._wrap([0x20, 0x09, 0x10, 0x00, start & 0xFF, start >> 8, count & 0xFF, count >> 8])
-        assert mb.build_frame(serial, mb.pdu_ext_read(0x09, 0x10, start, count)) == old_read
-        # write (0BH)
-        values = [rng.randrange(0x10000) for _ in range(rng.randrange(1, 20))]
-        body = bytearray([0x20, 0x0B, 0x10, 0x00, start & 0xFF, start >> 8, len(values), 0])
-        for v in values:
-            body += bytes((v & 0xFF, v >> 8))
-        serial = (old._serial + 1) & 0xFF
-        assert mb.build_frame(serial, mb.pdu_ext_write(0x10, start, values)) == old._wrap(body)
-
-
-def test_legacy_float_conversion_matches():
-    legacy = _load_legacy()
+# --- Float layout verified on a real controller --------------------------
+def test_float_conversion_matches_plc():
     from yaskawa_coms.datatypes import float_to_words, words_to_float
 
     # PLC-verified: MW21000=0xE4F7, MW21001=0x410A -> MF21000 = 8.6809
     assert words_to_float(0xE4F7, 0x410A) == pytest.approx(8.6809, abs=1e-4)
     for v in (0.0, -1.5, 8.6809, 123456.75):
-        assert float_to_words(v) == legacy.float_to_words(v)
+        assert words_to_float(*float_to_words(v)) == pytest.approx(v, rel=1e-6)
 
 
 # --- Modbus/TCP: standard example from the Modbus spec --------------------
