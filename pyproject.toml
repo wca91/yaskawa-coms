@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "yaskawa-coms"
-version = "0.1.0"
+version = "0.1.1"
 description = "Talk to Yaskawa MP-series and CP-series controllers over Ethernet: Extended MEMOBUS, Modbus/TCP and non-procedure communication."
 readme = "README.md"
 license = "MIT"
