@@ -113,7 +113,7 @@ Modbus/TCP is only supported by (CP-218 User's Manual, SIEP C870200 01E):
 
 | Module | Modbus/TCP |
 |---|---|
-| 218TXB, version **S0220 or later**, in **expansion mode** (DIP switch X1 = ON) | Yes |
+| 218TXB, version **S0220 or later**, in **expansion mode** (DIP switch X1 = ON) | Yes (tested on **S0302**) |
 | 218FXB, version S0302 or later | Yes |
 | 218G | Yes |
 | 218TXB older than S0220 (e.g. **S0210**), or in basic mode (X1 = OFF) | **No** |
@@ -127,10 +127,18 @@ see the CP-218 manual.
 When the module does support it, the settings are:
 
 * Connection: **TCP** + **BIN** (UDP and ASCII/RTU are not allowed).
-* MSG-RCV **PRO-TYP**: **4** on CP-series (CP-218 manual); on MP2000 the
-  manual says **1** (MEMOBUS) and the module converts automatically.
+* MSG-RCV **PRO-TYP**: **1** (MEMOBUS) works. Tested on a 218TXB S0302:
+  only the connection's protocol type was changed to MODBUS/TCP, the
+  MSG-RCV block kept PRO-TYP 1, and the module converts automatically (as
+  the MP2000 manual describes). The CP-218 manual lists PRO-TYP **4** for
+  Modbus/TCP; that was not needed here.
 * Client: `ModbusTcpClient(ip, <Local Port>, unit_id=0)`. The port is the
   connection's Local Port, not automatically 502.
+* The MSG-RCV write range (PARAM12/13) also limits Modbus writes; reads are
+  not limited. Coil writes (05H / 0FH) only reach MB00000-MB04095F, so they
+  are refused (error 02) whenever the write range starts above MW04095.
+* A port set to Modbus/TCP drops the connection when it gets an Extended
+  MEMOBUS frame, so use the client that matches the connection's protocol.
 
 **If the module went silent after switching to Modbus/TCP:** set the INIT
 DIP switch ON and power-cycle. The module then starts at **192.168.1.1**
@@ -221,7 +229,7 @@ Tested on a real MP-series controller over TCP (2026-10-27):
 | Scattered read/write 0DH / 0EH | tested on hardware |
 | Error replies (02 address, 03 count) | tested on hardware |
 | Extended MEMOBUS over UDP | tested on hardware (read, write, bit, scattered, loopback, errors) |
-| Modbus/TCP | standard protocol; tested against the simulator only (the test unit's 218TXB S0210 does not support it, see above) |
+| Modbus/TCP | tested on hardware (2026-10-28, 218TXB S0302, MSG-RCV PRO-TYP 1): 01H, 02H, 03H, 04H, 05H, 06H, 0FH, 10H, unit ID 0, max sizes (125 read / 100 write), coil writes (coil = word * 16 + bit), write-range error 02 |
 | Non-procedure, PC -> PLC (MSG-RCV, Pro-Typ 2, UDP, BIN) | tested on hardware (5 and 510 words, register offset PARAM12) |
 | Non-procedure, PLC -> PC (MSG-SND) | built from the manual; tested against a socket echo only |
 
